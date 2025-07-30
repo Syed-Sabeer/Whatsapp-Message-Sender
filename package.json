@@ -1,0 +1,33 @@
+{
+  "name": "whatsapp-sender",
+  "version": "1.0.0",
+  "description": "WhatsApp sender application using Baileys with dual panel interface",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "nodemon start.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "whatsapp",
+    "baileys",
+    "sender",
+    "messaging"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.31.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.10"
+  }
+}
