@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Sender</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .status-connected {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-disconnected {
+            background-color: #dc3545;
+            color: white;
+        }
+        .phone-number-item {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .message-item {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+        }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .message-text {
+            font-weight: 600;
+            flex: 1;
+        }
+        .message-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        .log-entry {
+            background-color: #f8f9fa;
+            padding: 8px;
+            margin: 2px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85em;
+        }
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            border: none;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-whatsapp:hover {
+            background: linear-gradient(135deg, #128C7E, #075E54);
+            color: white;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .quick-messages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .quick-messages .btn {
+            transition: all 0.3s ease;
+        }
+        
+        .quick-messages .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-content">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading...</p>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div id="alerts"></div>
+
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="display-4 text-primary">
+                <i class="fab fa-whatsapp me-3"></i>WhatsApp Sender by <a target="_blank" href="http://deveondynamics.com/">Deveon Dynamics</a>
+            </h1>
+            <p class="lead text-muted">A Product of <a target="_blank" href="http://deveondynamics.com/">Deveon Dynamics</a> Copyright 2025</p>
+        </div>
+
+        <div class="row">
+            <!-- WhatsApp Status Panel -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-wifi me-2"></i>WhatsApp Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Status:</strong>
+                            <div id="whatsapp-status" class="mt-2">
+                                <span class="text-warning">Loading...</span>
+                            </div>
+                        </div>
+
+                        <div id="qr-code" class="mb-3"></div>
+
+                        <div class="mb-3">
+                            <strong>Recent Logs:</strong>
+                            <div id="logs" class="mt-2" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+
+                        <button class="btn btn-whatsapp w-100" onclick="reconnectWhatsApp()">
+                            <i class="fas fa-sync me-2"></i>Reconnect
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Sending Panel -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-paper-plane me-2"></i>Send Messages
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Phone Numbers -->
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Phone Numbers:</strong></label>
+                            <div class="input-group mb-2">
+                                <input type="text" id="phone-number" class="form-control" 
+                                       placeholder="Enter phone number (e.g., 923123456789)" 
+                                       onkeypress="if(event.key==='Enter') addPhoneNumber()">
+                                <button class="btn btn-primary" onclick="addPhoneNumber()">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                                
+                            </div>
+                            <div id="phone-numbers-list"></div>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Message:</strong></label>
+                            <textarea id="message" class="form-control" rows="4" 
+                                      placeholder="Enter your message here..."></textarea>
+                        </div>
+
+                        <!-- Quick Message Shortcuts -->
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Quick Messages:</strong></label>
+                            <div class="quick-messages">
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Hello! How are you?')">
+                                    👋 How are you?
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Tomorrow is off')">
+                                    📅 Tomorrow is off
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Meeting at 3 PM')">
+                                    📋 Meeting at 3 PM
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Please call me back')">
+                                    📞 Call me back
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Happy Birthday! 🎉')">
+                                    🎂 Happy Birthday!
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Good morning! ☀️')">
+                                    ☀️ Good morning
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Good night! 🌙')">
+                                    🌙 Good night
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-2 mb-2" onclick="useQuickMessage('Thank you! 🙏')">
+                                    🙏 Thank you
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Send Button -->
+                        <button class="btn btn-whatsapp btn-lg w-100" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane me-2"></i>Send Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Message History -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>Message History
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="message-history">
+                            <p class="text-muted">No messages sent yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
